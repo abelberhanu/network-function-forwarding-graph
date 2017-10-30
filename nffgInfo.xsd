@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+<xsd:schema targetNamespace="http://www.example.org/nffgInfo" 
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"           
+            xmlns:n="http://www.example.org/nffgInfo" 
+            elementFormDefault="qualified">
+
+ <xsd:element name="nffgInfo" type="n:nffgInfo">
+	
+	 <xsd:key name="nffgKey">
+	     <xsd:selector xpath="n:nffg" />
+	     <xsd:field xpath="@nffg_name" />
+    </xsd:key>
+      
+     <xsd:key name="linkKey">
+	     <xsd:selector xpath="n:link" />
+	     <xsd:field xpath="@link_name" />
+    </xsd:key>  
+	<xsd:key name="nodeKey">
+	      <xsd:selector xpath="n:node" />
+	      <xsd:field xpath="@node_name" />
+	</xsd:key>
+	
+	<xsd:key name="functionKey">
+	      <xsd:selector xpath="n:functionType" />
+	      <xsd:field xpath="." />
+	</xsd:key>
+	
+	<xsd:keyref name="funcref" refer="n:functionKey">
+      <xsd:selector xpath="n:node" />
+      <xsd:field xpath="@funcType" />
+    </xsd:keyref>
+	
+	<xsd:keyref name="nodeLinkref" refer="n:linkKey">
+      <xsd:selector xpath="n:node" />
+      <xsd:field xpath="@links" />
+    </xsd:keyref>
+	
+	  <!-- LINK KEYREFS --> 
+	<xsd:keyref name="srcref" refer="n:nodeKey">
+      <xsd:selector xpath="n:link" />
+      <xsd:field xpath="@src" />
+    </xsd:keyref>
+    
+    <xsd:keyref name="dstref" refer="n:nodeKey">
+     	<xsd:selector xpath="n:link" />
+      	<xsd:field xpath="@dst" />
+    </xsd:keyref>
+    
+     <!-- POLICY KEYREFS -->      
+   <xsd:keyref name="nffgNameref" refer="n:nffgKey">
+   		 <xsd:selector xpath="n:policy" />
+	    <xsd:field xpath="@nffg_name" />
+   </xsd:keyref>
+   
+    <xsd:keyref name="traversedFuncref" refer="n:functionKey">
+      <xsd:selector xpath="n:traversedFunc" />
+      <xsd:field xpath="." />
+    </xsd:keyref>
+     
+</xsd:element>
+
+<xsd:complexType name="nffgInfo">
+	<xsd:sequence> 
+		<xsd:annotation>
+			<xsd:documentation>
+	  	       This is the root element in the document and it contains list of NFFG and Policy elements.
+	  	     </xsd:documentation>
+  		</xsd:annotation>
+		<xsd:element name="nffg" minOccurs="1" maxOccurs="unbounded" type="n:nffg" /> 
+		<xsd:element name="policy" minOccurs="0" maxOccurs="unbounded"  type="n:policy"/> 
+					
+	</xsd:sequence> 
+</xsd:complexType>
+
+<xsd:complexType name="nffg">
+	<xsd:sequence>
+		<xsd:annotation>
+			<xsd:documentation>
+	  	    	This specifies a single NFFG in the document.
+	  	    	It has attributes nffg_name and lastUpdateTime.
+	  	    </xsd:documentation>
+  		</xsd:annotation>
+		<xsd:element name="node" minOccurs="1" maxOccurs="unbounded" type="n:Mynode" />
+	</xsd:sequence>
+	<xsd:attribute name="nffg_id" type="xsd:string" use="required"/>
+	<xsd:attribute name="lastUpadateTime" type="xsd:dateTime" use="required"/>
+</xsd:complexType>
+
+<xsd:complexType name="Mynode">
+	<xsd:sequence>
+	<xsd:annotation>
+		<xsd:documentation>
+	  	    	This specifies list of Nodes in a particular NFFG.
+	  	    	It has two attributes node_name and funcType.
+	  	    	Attribute funcType refers to key functionKey.
+	  	</xsd:documentation>
+	  </xsd:annotation>
+	<xsd:element name="link"  minOccurs="0" maxOccurs="unbounded" type="n:link"/>
+	</xsd:sequence>
+  	
+	<xsd:attribute name="node_id" use="required"/>
+	<xsd:attribute name="funcType" use="required"/>	
+	
+</xsd:complexType>
+
+<xsd:complexType name="link">
+	<xsd:annotation>
+		<xsd:documentation>
+	  	    	This specifies list of Links between nodes of a particular NFFG.
+	  	    	It has three attributes link_name, src and dst.
+	  	    	Attributes src and dst refer to key nodeKey.
+	  	</xsd:documentation>
+  	</xsd:annotation>	
+	<xsd:attribute name="link_id" type="xsd:string"/>
+	<xsd:attribute name="src" type="xsd:string" use="required"/>
+	<xsd:attribute name="dst" type="xsd:string" use="required"/>
+</xsd:complexType>
+
+<xsd:complexType name="policy">
+	<xsd:sequence>
+		<xsd:element name="verificationResult" minOccurs="0" type="n:verificationResult"/> 		
+		<xsd:element name="traversedFunc" minOccurs="0" maxOccurs="unbounded" type="n:functionType" />
+	</xsd:sequence>
+	<xsd:attribute name="policy_name" type="xsd:string"/>
+	<xsd:attribute name="nffg_id" type="xsd:string" use="required"/>
+	<xsd:attribute name="isPositive" type="xsd:boolean" use="required"/>
+	<xsd:attribute name="srcNode" type="xsd:string" use="required"/>
+	<xsd:attribute name="dstNode" type="xsd:string" use="required"/>
+</xsd:complexType> 
+
+ <xsd:complexType name="verificationResult">
+ <xsd:sequence>
+ 		<xsd:element name="result" minOccurs="0" type="xsd:boolean"/> 		
+		<xsd:element name="message" minOccurs="0" type="xsd:string"/>
+		<xsd:element name="lastVerifiedTime" minOccurs="0" type="xsd:dateTime"/>
+ </xsd:sequence>
+</xsd:complexType> 
+ <xsd:simpleType name="functionType">
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="FW"/>
+					<xsd:enumeration value="DPI"/>
+					<xsd:enumeration value="NAT"/>
+					<xsd:enumeration value="CACHE"/>
+					<xsd:enumeration value="SPAM"/>
+					<xsd:enumeration value="VPN"/>
+					<xsd:enumeration value="MAIL_CLIENT"/>
+					<xsd:enumeration value="MAIL_SERVER"/>
+					<xsd:enumeration value="WEB_CLIENT"/>
+					<xsd:enumeration value="WEB_SERVER"/>					
+			   </xsd:restriction>
+</xsd:simpleType>
+</xsd:schema>

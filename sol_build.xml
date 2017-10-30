@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+
+<project name="Assignment3b_v2" default="build-service" basedir=".">
+
+	<property name="root.location" location="." />
+	
+	<property name="PORT" value="8080" />
+	<property name="URL" value="http://localhost:${PORT}/NffgService/rest" />
+	<property name="WADL" value="${URL}/application.wadl" />
+	<property name="gen.dir" location="${root.location}/gen-src" />
+	<property name="lib.dir" location="${root.location}/lib" />
+	
+	<property name="src.dir" location="${root.location}/src" />
+	<property name="path.prefix" value="it/polito/dp2/rest" />
+	<property name="build.dir" location="${root.location}/build" />
+	
+	<!-- define location of WADL for WADL-based example -->
+		<property name="Neo4JXML.name" value="Neo4JXML" />
+		<property name="Neo4JXML.location" value="rest" />
+		<property name="Neo4JXML.wadl" value="http://localhost:8080/${Neo4JXML.name}/${Neo4JXML.location}/application.wadl" />
+
+
+	
+	<property name = "debug" value = "true"/>
+	<property name = "debuglevel" value ="source,lines,vars"/>
+	<property name="target" value="1.8" />
+	<property name="source" value="1.8" />
+	
+	<property name="serviceName" value="NffgService" />
+	<property name="resources.dir" location="${root.location}/WebContent" />
+	<property name="web.lib.dir" location="${resources.dir}/WEB-INF/lib" />
+	<property name="gen-war.dir" location="${root.location}/war" />
+	
+	<path id="classpath">
+			<fileset dir="${lib.dir}">
+				<include name="**/*.jar" />
+			</fileset>
+			<fileset dir="${web.lib.dir}">
+				<include name="**/*.jar" />
+			</fileset>
+	</path>
+
+	<!--DELETE BUILD AND GENERATED DIRECTORIES-->
+	<target name="clean" description="Clean build and generated">
+		<delete dir="${build.dir}" />
+		<delete dir="${gen.dir}" />		
+	</target>
+	
+	<target name="init" depends="clean">
+			<!-- make directories -->
+		    <mkdir dir="${build.dir}"/>
+			<mkdir dir="${gen.dir}"/>
+			<mkdir dir="${gen-tomcat-service.dir}"/>		
+			<mkdir dir="${gen-war.dir}"/>
+	</target>  
+	
+	<!--BUILD SERVICE-->
+	<target name="build-service">
+		<javac debug="on" 
+			       fork="true"
+			       destdir="${build.dir}" 
+			       srcdir="${src.dir}"
+				   includeantruntime="false"
+				   source="${source}"
+				   target="${target}"
+			 	>			
+			    <classpath>
+					<path refid="classpath" />
+				</classpath>
+		</javac>
+		
+	</target>
+	
+	<taskdef name="wjc" classname="org.jvnet.ws.wadl2java.WJCTask">
+		   <classpath>
+		   	<fileset dir="${lib.dir}" includes="*.jar" />
+		   </classpath>
+    </taskdef>
+	
+	
+	<target name="generate-artifacts"  depends="init" description="Generate bindings from schema">
+		
+	
+		<exec executable="xjc" failonerror="true" >
+				<arg value="-d" />
+				<arg value="${gen.dir}" />
+				<arg value="-p" />
+				<arg value="it.polito.dp2.NFFG.sol3.service" />
+				<arg value="xsd/nffgInfo.xsd" />
+			</exec>
+			<touch file="${gen.dir}/.flagfile" />
+		<wjc description="${Neo4JXML.wadl}" package="it.polito.dp2.NFFG.sol3.service"
+				       autoSchemaPackage="false" target="${gen.dir}">
+				     <customizations dir="${root.location}" includes="binding.xjc"/>
+				     <produces dir="${gen.dir}/it/polito/dp2/NFFG/sol3/service" includes="*.java"/>
+				     <depends dir="${root.location}" includes="build.xml"/>
+				    </wjc>
+			
+	 <copy toDir ="${src.dir}/it/polito/dp2/NFFG/sol3/service" overwrite = "true">
+			       <fileset dir="${gen.dir}/it/polito/dp2/NFFG/sol3/service">
+			           <include name = "*"/> 
+			       </fileset>
+			 </copy>
+		</target>
+	<!---BUILD CLIENT-->
+	<target name="build-client" depends="init">
+		 <javac destdir ="${build.dir}" debug ="${debug}" debuglevel ="${debuglevel}"
+			    source ="${source}" target ="${target}" includeantruntime ="false">
+			    <src path ="${src.dir}"/>
+			    <src path ="${gen.dir}"/>
+			    <classpath >
+			      <path refid ="classpath"/>      
+			    </classpath>
+			    <include name ="it/polito/dp2/NFFG/sol3/client1/**"/>
+		 		<include name ="it/polito/dp2/NFFG/sol3/client2/**"/>
+			   
+			   </javac>
+	</target>
+	
+</project>

@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+targetNamespace="http://www.example.org/nffgInfo" 
+xmlns:tns="http://www.example.org/nffgInfo" 
+elementFormDefault="qualified">
+
+
+	 <xsd:annotation>
+	    <xsd:documentation xml:lang="en">
+	      Network Function Forwarding Graph schema 
+	      Copyright 2016. All rights reserved.
+	    </xsd:documentation>
+	  </xsd:annotation>    
+  
+  	<xsd:element name='NffgVerifier' type='tns:TypeNffgVerfier'>
+  	
+  	<xsd:annotation>
+	<xsd:documentation> single id must be assigned to the NFFG name    
+	</xsd:documentation>
+	</xsd:annotation>
+		<xsd:key name="keyNffgName">
+			<xsd:selector xpath="tns:NffgVerifier" />
+			<xsd:field xpath="@name" />
+			 
+		</xsd:key>
+		 
+	<xsd:key name="keyNode">
+		<xsd:annotation>
+		<xsd:documentation>  unique nodename in a single network
+		</xsd:documentation></xsd:annotation>
+			<xsd:selector xpath="tns:NffgVerifier/tns:Node" />
+			<xsd:field xpath="@name" />
+		</xsd:key>
+			 
+  	
+		<xsd:unique name="uLinkName">
+			<xsd:selector xpath="tns:NffgVerifier/tns:Node/tns:Link" />
+			<xsd:field xpath="@name" />
+		</xsd:unique>
+	
+		<xsd:unique name="uPolicyName">
+			<xsd:selector xpath="tns:NffgVerifier/tns:Policy" />
+			<xsd:field xpath="@name" />
+		</xsd:unique>
+		
+		
+		<xsd:keyref name="RefkeyLink" refer="tns:keyNode">
+		<xsd:annotation>
+		<xsd:documentation> destination and source node must be found inside Nodereader
+		</xsd:documentation>
+		</xsd:annotation>
+			<xsd:selector xpath="tns:NffgVerifier/tns:Node/tns:Link" />
+			<xsd:field xpath="@source" />
+		</xsd:keyref>
+		
+		
+		<xsd:keyref name="RefkeyLink2" refer="tns:keyNode">
+		<xsd:annotation>
+		<xsd:documentation> destination and source node must be found inside Nodereader
+		</xsd:documentation>
+		</xsd:annotation>
+			<xsd:selector xpath="tns:NffgVerifier/tns:Node/tns:Link" />
+			<xsd:field xpath="@destination" />  
+		</xsd:keyref>
+		
+		<xsd:keyref name="RefkeyReachabilityPolicy" refer="tns:keyNode">
+		<xsd:annotation>
+		<xsd:documentation> destination and source node must be found inside Nodereader
+		</xsd:documentation>
+		</xsd:annotation>
+			<xsd:selector xpath="tns:NffgVerifier/tns:Policy|tns:ReachPolicy" />
+			<xsd:field xpath="@source" />
+		</xsd:keyref>
+		
+		<xsd:keyref name="RefkeyReachabilityPolicy2" refer="tns:keyNode">
+		<xsd:annotation>
+		<xsd:documentation> destination and source node must be found inside Nodereader
+		</xsd:documentation>
+		</xsd:annotation>
+			<xsd:selector xpath="tns:NffgVerifier/tns:Policy|tns:ReachPolicy" />
+		<xsd:field xpath="@destination" /> 
+		</xsd:keyref>
+		
+		
+		
+		<xsd:keyref name="RefPolicy" refer="tns:keyNffgName">
+		<xsd:annotation>
+		<xsd:documentation> policy must refer to the NFFG 
+		</xsd:documentation>
+		</xsd:annotation>
+			<xsd:selector xpath="tns:NffgVerifier/tns:Policy" />
+			<xsd:field xpath="@nffgname" />
+			
+		</xsd:keyref>
+		
+	</xsd:element>
+	
+<xsd:complexType name='TypeNffgVerfier'>
+		<xsd:sequence>
+			<xsd:annotation>
+				<xsd:documentation> TypeNffgVerfier compex type is a root element and
+					conatin two elemnts one or more of nffg and one or more of
+					policy reader (compex type of policy)
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:element name='Nffg' type='tns:TypeNffg' maxOccurs="unbounded" />
+			<xsd:element name="Policy" type="tns:TypePolicy"  minOccurs="0" maxOccurs="unbounded" />
+		</xsd:sequence>
+	</xsd:complexType>	
+	
+	<xsd:complexType name='TypeNffg'>
+		<xsd:sequence>
+			<xsd:annotation>
+				<xsd:documentation> TypeNffg complex type element and
+					contain one elements one or more of NodeReader 
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:element name='Node' type='tns:TypeNode' maxOccurs="unbounded" />
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" />				
+		<xsd:attribute name="updatetime" type="xsd:dateTime" />				
+
+	</xsd:complexType>	
+	
+	
+	<xsd:complexType name='TypeNode'>
+		<xsd:sequence>
+			<xsd:annotation>
+				<xsd:documentation> Node is with a complex type  LinkReader 
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:element name="Link" type="tns:TypeLink" minOccurs ="0" maxOccurs="unbounded" />
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" />	
+		<xsd:attribute name='type' type="xsd:string"/>
+			
+	</xsd:complexType>	
+	
+	<xsd:simpleType name="func">
+		<xsd:annotation>
+			<xsd:documentation> list of functions 
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="CACHE" />
+			<xsd:enumeration value="DPI" />
+			<xsd:enumeration value="FW" />
+			<xsd:enumeration value="MAIL_CLIENT" />
+			<xsd:enumeration value="MAIL_SERVER" />
+			<xsd:enumeration value="NAT" />
+			<xsd:enumeration value="SPAM" />
+			<xsd:enumeration value="VPN" />
+			<xsd:enumeration value="WEB_CLIENT" />
+			<xsd:enumeration value="WEB_SERVER" />
+		</xsd:restriction>
+	</xsd:simpleType>		
+	
+	
+	<xsd:complexType name='TypeLink'>	
+		<xsd:annotation>
+			<xsd:documentation> conatin the linked nodes  
+			</xsd:documentation>
+		</xsd:annotation>		
+		<xsd:attribute name="name" type="xsd:string" use="required" />
+		<xsd:attribute name="source" type="xsd:string" />
+		<xsd:attribute name="destination" type="xsd:string" />		
+ </xsd:complexType>			
+	
+	
+	<xsd:complexType name='TypePolicy'>
+		<xsd:sequence>
+			<xsd:annotation>
+				<xsd:documentation> TypePolicyReader is a compex type and
+					conatin two elemnts Reachability (complex type) and 
+					NodeVerifier (simple type )
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:element name="ReachPolicy"  type="tns:TypeReachPolicy"   minOccurs ="0" />
+				
+			<xsd:element name="NffgResult" type="tns:TypeNffgResult"  minOccurs ="0" maxOccurs="1" />
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required" />
+		<xsd:attribute name="nffgname" type="xsd:string" use="required" />
+		<xsd:attribute name="IsPosetive" type="xsd:boolean" />
+ </xsd:complexType>	
+ 
+ 
+	<xsd:complexType name="TypeReachPolicy">
+		<xsd:sequence>
+			<xsd:annotation>
+				<xsd:documentation> conatin the traversal policy  
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:element name='TraversalPolicy' type='tns:TypeTraversalPolicy' minOccurs ="0" maxOccurs="unbounded" />
+			
+		</xsd:sequence>
+		<xsd:attribute name="source" type="xsd:string" use ="required" />
+		<xsd:attribute name="destination" type="xsd:string" use ="required" />
+ </xsd:complexType>			
+
+	
+	<xsd:complexType name="TypeTraversalPolicy">
+			<xsd:sequence>
+	
+		<xsd:annotation>
+			<xsd:documentation> contains the different types of function
+			</xsd:documentation>
+		</xsd:annotation>
+			<xsd:element name="func" type="tns:TypeFunc" minOccurs ="0" maxOccurs="unbounded" />
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="TypeFunc">
+		<xsd:annotation>
+			<xsd:documentation> contains the different types of function
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="type" type="tns:func" />
+	</xsd:complexType>
+	
+<xsd:complexType name="TypeNffgResult">
+		<xsd:annotation>
+			<xsd:documentation> conatin the recheblity policy  
+			</xsd:documentation>
+		</xsd:annotation>
+
+		<xsd:attribute name="result" type="xsd:boolean" />		
+		<xsd:attribute name="Message" type="xsd:string"  />
+		<xsd:attribute name="verifierTime" type="xsd:dateTime" />
+</xsd:complexType>	
+</xsd:schema>
+
